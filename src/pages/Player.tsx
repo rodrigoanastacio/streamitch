@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { Play, Tv, Search, Link2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -20,6 +21,8 @@ interface CategoryMap {
 }
 
 const PlayerPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
   const [categories, setCategories] = useState<CategoryMap>({});
@@ -28,45 +31,34 @@ const PlayerPage = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Handle direct navigation with state
+    if (location.state?.url) {
+      setCurrentChannel({
+        title: location.state.title,
+        url: location.state.url,
+        group: location.state.group,
+      });
+    }
+
     const loadPlaylist = () => {
       const playlist = localStorage.getItem("currentPlaylist");
-      const playlistUrl = localStorage.getItem("playlistUrl");
-
       if (playlist) {
         const parsedChannels = parseM3U(playlist);
         setChannels(parsedChannels);
-        if (parsedChannels.length > 0) {
+        if (!location.state?.url && parsedChannels.length > 0) {
           setCurrentChannel(parsedChannels[0]);
         }
         organizeCategories(parsedChannels);
-      } else if (playlistUrl) {
-        fetch(playlistUrl)
-          .then(response => response.text())
-          .then(content => {
-            const parsedChannels = parseM3U(content);
-            setChannels(parsedChannels);
-            if (parsedChannels.length > 0) {
-              setCurrentChannel(parsedChannels[0]);
-            }
-            organizeCategories(parsedChannels);
-          })
-          .catch(() => {
-            toast({
-              title: "Error",
-              description: "Failed to load playlist from URL",
-              variant: "destructive",
-            });
-          });
       }
     };
 
     loadPlaylist();
-  }, [toast]);
+  }, [location.state]);
 
   const organizeCategories = (channels: Channel[]) => {
     const categoryMap: CategoryMap = { "All Channels": channels };
-    
-    channels.forEach(channel => {
+
+    channels.forEach((channel) => {
       if (channel.group) {
         if (!categoryMap[channel.group]) {
           categoryMap[channel.group] = [];
@@ -74,7 +66,7 @@ const PlayerPage = () => {
         categoryMap[channel.group].push(channel);
       }
     });
-    
+
     setCategories(categoryMap);
   };
 
@@ -86,15 +78,27 @@ const PlayerPage = () => {
     });
   };
 
-  const filteredChannels = selectedCategory === "all" 
-    ? channels 
-    : categories[selectedCategory] || [];
+  const filteredChannels =
+    selectedCategory === "all" ? channels : categories[selectedCategory] || [];
 
-  const searchedChannels = searchQuery 
-    ? filteredChannels.filter(channel => 
+  const searchedChannels = searchQuery
+    ? filteredChannels.filter((channel) =>
         channel.title.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : filteredChannels;
+
+  if (!currentChannel && !channels.length) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+          <p className="text-muted-foreground">No content available</p>
+          <Button variant="outline" onClick={() => navigate("/upload")}>
+            Upload Playlist
+          </Button>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -118,7 +122,9 @@ const PlayerPage = () => {
                   title={currentChannel.title}
                 />
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">{currentChannel.title}</h2>
+                  <h2 className="text-xl font-semibold">
+                    {currentChannel.title}
+                  </h2>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -156,8 +162,8 @@ const PlayerPage = () => {
                   <SelectContent>
                     <SelectItem value="all">All Channels</SelectItem>
                     {Object.keys(categories)
-                      .filter(cat => cat !== "All Channels")
-                      .map(category => (
+                      .filter((cat) => cat !== "All Channels")
+                      .map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
                         </SelectItem>
@@ -180,7 +186,11 @@ const PlayerPage = () => {
                 {searchedChannels.map((channel, index) => (
                   <Button
                     key={index}
-                    variant={currentChannel?.url === channel.url ? "secondary" : "ghost"}
+                    variant={
+                      currentChannel?.url === channel.url
+                        ? "secondary"
+                        : "ghost"
+                    }
                     className="w-full justify-start group"
                     onClick={() => setCurrentChannel(channel)}
                   >

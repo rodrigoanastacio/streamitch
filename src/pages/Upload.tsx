@@ -8,10 +8,13 @@ import { useNavigate } from "react-router-dom";
 
 const UploadPage = () => {
   const [url, setUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -22,7 +25,7 @@ const UploadPage = () => {
         title: "Success",
         description: "Playlist uploaded successfully",
       });
-      navigate("/player");
+      navigate("/");
     } catch (error) {
       toast({
         title: "Error",
@@ -32,23 +35,32 @@ const UploadPage = () => {
     }
   };
 
-  const handleUrlSubmit = (event: React.FormEvent) => {
+  const handleUrlSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!url) return;
 
+    setIsLoading(true);
     try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch playlist");
+
+      const content = await response.text();
+      localStorage.setItem("currentPlaylist", content);
       localStorage.setItem("playlistUrl", url);
+
       toast({
         title: "Success",
-        description: "Playlist URL added successfully",
+        description: "Playlist loaded successfully",
       });
-      navigate("/player");
+      navigate("/");
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to add playlist URL",
+        description: "Failed to load playlist from URL",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -81,17 +93,21 @@ const UploadPage = () => {
 
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Add URL</h2>
-            <form onSubmit={handleUrlSubmit} className="flex items-center gap-4">
+            <form
+              onSubmit={handleUrlSubmit}
+              className="flex items-center gap-4"
+            >
               <Input
                 type="url"
                 placeholder="Enter playlist URL"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 className="flex-1"
+                disabled={isLoading}
               />
-              <Button type="submit">
+              <Button type="submit" disabled={isLoading}>
                 <LinkIcon className="w-4 h-4 mr-2" />
-                Add URL
+                {isLoading ? "Loading..." : "Add URL"}
               </Button>
             </form>
           </div>

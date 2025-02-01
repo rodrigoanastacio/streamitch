@@ -4,21 +4,26 @@ import { useEffect, useState } from "react";
 import { Channel, parseM3U } from "@/lib/m3u-parser";
 
 const Index = () => {
-  const [categories, setCategories] = useState<{ [key: string]: Channel[] }>({});
+  const [categories, setCategories] = useState<{ [key: string]: Channel[] }>(
+    {}
+  );
 
   useEffect(() => {
     const loadContent = () => {
       const playlist = localStorage.getItem("currentPlaylist");
       if (playlist) {
         const channels = parseM3U(playlist);
-        const categorizedContent = channels.reduce((acc: { [key: string]: Channel[] }, channel) => {
-          const category = channel.group || "Uncategorized";
-          if (!acc[category]) {
-            acc[category] = [];
-          }
-          acc[category].push(channel);
-          return acc;
-        }, {});
+        const categorizedContent = channels.reduce(
+          (acc: { [key: string]: Channel[] }, channel) => {
+            const category = channel.group || "Uncategorized";
+            if (!acc[category]) {
+              acc[category] = [];
+            }
+            acc[category].push(channel);
+            return acc;
+          },
+          {}
+        );
         setCategories(categorizedContent);
       }
     };
@@ -30,7 +35,9 @@ const Index = () => {
     <Layout>
       <div className="space-y-8 animate-fade-in">
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold tracking-tight">Featured Content</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Featured Content
+          </h1>
           <p className="text-muted-foreground">
             Browse through your favorite movies, series, and TV channels
           </p>
