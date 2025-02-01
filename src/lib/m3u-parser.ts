@@ -2,7 +2,6 @@ export interface Channel {
   title: string;
   url: string;
   group?: string;
-  logo?: string;
 }
 
 export function parseM3U(content: string): Channel[] {
@@ -14,25 +13,17 @@ export function parseM3U(content: string): Channel[] {
     line = line.trim();
     
     if (line.startsWith('#EXTINF:')) {
-      // Parse channel info
       const titleMatch = line.match(/,(.+)$/);
       if (titleMatch) {
         currentChannel.title = titleMatch[1].trim();
       }
-
-      // Parse tvg-logo if exists
-      const logoMatch = line.match(/tvg-logo="([^"]+)"/);
-      if (logoMatch) {
-        currentChannel.logo = logoMatch[1];
-      }
-
-      // Parse group-title if exists
+      
+      // Extract group if present
       const groupMatch = line.match(/group-title="([^"]+)"/);
       if (groupMatch) {
-        currentChannel.group = groupMatch[1];
+        currentChannel.group = groupMatch[1].trim();
       }
-    } else if (line.startsWith('http') || line.startsWith('https')) {
-      // This is the channel URL
+    } else if (line.startsWith('http')) {
       currentChannel.url = line;
       if (currentChannel.title && currentChannel.url) {
         channels.push(currentChannel as Channel);
