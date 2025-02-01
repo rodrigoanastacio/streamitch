@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Link as LinkIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const UploadPage = () => {
   const [url, setUrl] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -15,12 +17,12 @@ const UploadPage = () => {
 
     try {
       const text = await file.text();
-      // Store playlist in localStorage for now
       localStorage.setItem("currentPlaylist", text);
       toast({
         title: "Success",
         description: "Playlist uploaded successfully",
       });
+      navigate("/player");
     } catch (error) {
       toast({
         title: "Error",
@@ -35,12 +37,12 @@ const UploadPage = () => {
     if (!url) return;
 
     try {
-      // Store URL in localStorage for now
       localStorage.setItem("playlistUrl", url);
       toast({
         title: "Success",
         description: "Playlist URL added successfully",
       });
+      navigate("/player");
     } catch (error) {
       toast({
         title: "Error",
