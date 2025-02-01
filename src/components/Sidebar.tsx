@@ -1,4 +1,4 @@
-import { FileVideo, Home, Upload } from "lucide-react";
+import { FileVideo, Film, Home, Tv, Upload, List } from "lucide-react";
 import {
   Sidebar as SidebarContainer,
   SidebarContent,
@@ -13,6 +13,9 @@ import { Link } from "react-router-dom";
 
 const menuItems = [
   { title: "Home", icon: Home, path: "/" },
+  { title: "Movies", icon: Film, path: "/movies" },
+  { title: "Series", icon: List, path: "/series" },
+  { title: "TV Channels", icon: Tv, path: "/tv-channels" },
   { title: "Upload", icon: Upload, path: "/upload" },
   { title: "Playlists", icon: FileVideo, path: "/playlists" },
 ];

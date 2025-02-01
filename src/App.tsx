@@ -8,6 +8,9 @@ import Upload from "./pages/Upload";
 import Playlists from "./pages/Playlists";
 import Player from "./pages/Player";
 import NotFound from "./pages/NotFound";
+import Movies from "./pages/Movies";
+import Series from "./pages/Series";
+import TvChannels from "./pages/TvChannels";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +25,9 @@ const App = () => (
           <Route path="/upload" element={<Upload />} />
           <Route path="/playlists" element={<Playlists />} />
           <Route path="/player" element={<Player />} />
+          <Route path="/movies" element={<Movies />} />
+          <Route path="/series" element={<Series />} />
+          <Route path="/tv-channels" element={<TvChannels />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

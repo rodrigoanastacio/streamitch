@@ -1,42 +1,58 @@
 import { Layout } from "@/components/Layout";
-import { Button } from "@/components/ui/button";
-import { FileVideo, Upload } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ContentRow } from "@/components/ContentRow";
+import { useEffect, useState } from "react";
+import { Channel, parseM3U } from "@/lib/m3u-parser";
 
 const Index = () => {
+  const [categories, setCategories] = useState<{ [key: string]: Channel[] }>({});
+
+  useEffect(() => {
+    const loadContent = () => {
+      const playlist = localStorage.getItem("currentPlaylist");
+      if (playlist) {
+        const channels = parseM3U(playlist);
+        const categorizedContent = channels.reduce((acc: { [key: string]: Channel[] }, channel) => {
+          const category = channel.group || "Uncategorized";
+          if (!acc[category]) {
+            acc[category] = [];
+          }
+          acc[category].push(channel);
+          return acc;
+        }, {});
+        setCategories(categorizedContent);
+      }
+    };
+
+    loadContent();
+  }, []);
+
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-8 animate-fade-in">
-        <div className="space-y-4 text-center max-w-2xl">
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            <FileVideo className="w-4 h-4 mr-2" />
-            M3U Playlist Viewer
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl text-balance">
-            Your Personal Streaming Experience
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-prose mx-auto">
-            Upload your M3U playlists or enter a URL to start streaming your content with our beautiful, minimalist player.
+      <div className="space-y-8 animate-fade-in">
+        <div className="space-y-4">
+          <h1 className="text-3xl font-bold tracking-tight">Featured Content</h1>
+          <p className="text-muted-foreground">
+            Browse through your favorite movies, series, and TV channels
           </p>
         </div>
-        
-        <div className="flex gap-4 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-          <Button asChild size="lg" className="gap-2">
-            <Link to="/upload">
-              <Upload className="w-4 h-4" />
-              Upload Playlist
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="gap-2">
-            <Link to="/playlists">
-              <FileVideo className="w-4 h-4" />
-              Browse Playlists
-            </Link>
-          </Button>
+
+        <div className="space-y-8">
+          {Object.entries(categories).map(([category, items]) => (
+            <ContentRow key={category} title={category} items={items} />
+          ))}
         </div>
+
+        {Object.keys(categories).length === 0 && (
+          <div className="text-center space-y-4">
+            <p className="text-muted-foreground">No content available.</p>
+            <p className="text-sm text-muted-foreground">
+              Upload a playlist or add a URL to start watching.
+            </p>
+          </div>
+        )}
       </div>
     </Layout>
   );
-}
+};
 
 export default Index;
