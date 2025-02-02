@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Layout } from "@/components/Layout";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { Channel, parseM3U } from "@/lib/m3u-parser";
@@ -7,7 +7,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { Play, Tv, Search, Link2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useLocation, useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -21,8 +20,6 @@ interface CategoryMap {
 }
 
 const PlayerPage = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
   const [categories, setCategories] = useState<CategoryMap>({});
@@ -30,30 +27,41 @@ const PlayerPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Handle direct navigation with state
-    if (location.state?.url) {
-      setCurrentChannel({
-        title: location.state.title,
-        url: location.state.url,
-        group: location.state.group,
-      });
-    }
+  const loadPlaylist = useCallback(() => {
+    const playlist = localStorage.getItem("currentPlaylist");
+    const playlistUrl = localStorage.getItem("playlistUrl");
 
-    const loadPlaylist = () => {
-      const playlist = localStorage.getItem("currentPlaylist");
-      if (playlist) {
-        const parsedChannels = parseM3U(playlist);
-        setChannels(parsedChannels);
-        if (!location.state?.url && parsedChannels.length > 0) {
-          setCurrentChannel(parsedChannels[0]);
-        }
-        organizeCategories(parsedChannels);
+    if (playlist) {
+      const parsedChannels = parseM3U(playlist);
+      setChannels(parsedChannels);
+      if (parsedChannels.length > 0) {
+        setCurrentChannel(parsedChannels[0]);
       }
-    };
+      organizeCategories(parsedChannels);
+    } else if (playlistUrl) {
+      fetch(playlistUrl)
+        .then((response) => response.text())
+        .then((content) => {
+          const parsedChannels = parseM3U(content);
+          setChannels(parsedChannels);
+          if (parsedChannels.length > 0) {
+            setCurrentChannel(parsedChannels[0]);
+          }
+          organizeCategories(parsedChannels);
+        })
+        .catch(() => {
+          toast({
+            title: "Error",
+            description: "Failed to load playlist from URL",
+            variant: "destructive",
+          });
+        });
+    }
+  }, [toast]);
 
+  useEffect(() => {
     loadPlaylist();
-  }, [location.state]);
+  }, [loadPlaylist]);
 
   const organizeCategories = (channels: Channel[]) => {
     const categoryMap: CategoryMap = { "All Channels": channels };
@@ -86,19 +94,6 @@ const PlayerPage = () => {
         channel.title.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : filteredChannels;
-
-  if (!currentChannel && !channels.length) {
-    return (
-      <Layout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-          <p className="text-muted-foreground">No content available</p>
-          <Button variant="outline" onClick={() => navigate("/upload")}>
-            Upload Playlist
-          </Button>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>

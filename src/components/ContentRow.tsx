@@ -5,7 +5,6 @@ interface Content {
   title: string;
   thumbnail?: string;
   url: string;
-  group?: string;
 }
 
 interface ContentRowProps {
@@ -23,12 +22,7 @@ export function ContentRow({ title, items }: ContentRowProps) {
         <div className="flex w-max space-x-4 p-1">
           {items.map((item, index) => (
             <div key={index} className="w-[250px]">
-              <MediaCard
-                title={item.title}
-                thumbnail={item.thumbnail}
-                url={item.url}
-                group={item.group}
-              />
+              <MediaCard {...item} />
             </div>
           ))}
         </div>
