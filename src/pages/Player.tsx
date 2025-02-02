@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSearchParams } from "react-router-dom";
 
 interface CategoryMap {
   [key: string]: Channel[];
@@ -26,6 +27,7 @@ const PlayerPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
 
   const loadPlaylist = useCallback(() => {
     const playlist = localStorage.getItem("currentPlaylist");
@@ -34,8 +36,13 @@ const PlayerPage = () => {
     if (playlist) {
       const parsedChannels = parseM3U(playlist);
       setChannels(parsedChannels);
-      if (parsedChannels.length > 0) {
-        setCurrentChannel(parsedChannels[0]);
+
+      const urlParam = searchParams.get("url");
+      const initialChannel = urlParam
+        ? parsedChannels.find((channel) => channel.url === urlParam)
+        : parsedChannels[0];
+      if (initialChannel) {
+        setCurrentChannel(initialChannel);
       }
       organizeCategories(parsedChannels);
     } else if (playlistUrl) {
@@ -44,8 +51,12 @@ const PlayerPage = () => {
         .then((content) => {
           const parsedChannels = parseM3U(content);
           setChannels(parsedChannels);
-          if (parsedChannels.length > 0) {
-            setCurrentChannel(parsedChannels[0]);
+          const urlParam = searchParams.get("url");
+          const initialChannel = urlParam
+            ? parsedChannels.find((channel) => channel.url === urlParam)
+            : parsedChannels[0];
+          if (initialChannel) {
+            setCurrentChannel(initialChannel);
           }
           organizeCategories(parsedChannels);
         })
@@ -57,7 +68,7 @@ const PlayerPage = () => {
           });
         });
     }
-  }, [toast]);
+  }, [searchParams, toast]);
 
   useEffect(() => {
     loadPlaylist();
