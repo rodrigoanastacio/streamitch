@@ -1,5 +1,5 @@
 import { Layout } from "@/components/Layout";
-import { ContentRow } from "@/components/ContentRow";
+import { ChannelItem } from "@/components/ChannelItem";
 import { useEffect, useState } from "react";
 import { Channel, parseM3U } from "@/lib/m3u-parser";
 
@@ -11,10 +11,12 @@ const TvChannels = () => {
       const playlist = localStorage.getItem("currentPlaylist");
       if (playlist) {
         const allChannels = parseM3U(playlist);
-        const tvChannels = allChannels.filter(channel => 
-          channel.group?.toLowerCase().includes("tv") || 
-          !channel.group?.toLowerCase().includes("movie") && 
-          !channel.group?.toLowerCase().includes("series")
+        const tvChannels = allChannels.filter(
+          (channel) =>
+            channel.group?.toLowerCase().includes("tv") ||
+            (!channel.group?.toLowerCase().includes("movie") &&
+              !channel.group?.toLowerCase().includes("series") &&
+              !channel.group?.toLowerCase().includes("séries"))
         );
         setChannels(tvChannels);
       }
@@ -33,7 +35,13 @@ const TvChannels = () => {
           </p>
         </div>
 
-        <ContentRow title="All Channels" items={channels} />
+        <div className="space-y-4">
+          {channels.map((item, index) => (
+            <div key={index} className="">
+              <ChannelItem {...item} />
+            </div>
+          ))}
+        </div>
 
         {channels.length === 0 && (
           <div className="text-center space-y-4">

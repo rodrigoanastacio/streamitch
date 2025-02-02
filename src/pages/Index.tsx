@@ -44,9 +44,12 @@ const Index = () => {
         </div>
 
         <div className="space-y-8">
-          {Object.entries(categories).map(([category, items]) => (
-            <ContentRow key={category} title={category} items={items} />
-          ))}
+          {categories["Series"] && (
+            <ContentRow title="Series" items={categories["Series"]} />
+          )}
+          {categories["SÉRIES"] && (
+            <ContentRow title="SÉRIES" items={categories["SÉRIES"]} />
+          )}
         </div>
 
         {Object.keys(categories).length === 0 && (
