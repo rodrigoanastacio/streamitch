@@ -15,7 +15,7 @@ export function MediaCard({ title, thumbnail, url }: MediaCardProps) {
         title
       )}`}
     >
-      <Card className="group relative overflow-hidden transition-all hover:scale-105">
+      <Card className="group relative overflow-hidden transition-all hover:scale-[1.02]">
         <CardContent className="p-0">
           <img
             src={
@@ -23,7 +23,7 @@ export function MediaCard({ title, thumbnail, url }: MediaCardProps) {
               "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5"
             }
             alt={title}
-            className="aspect-video w-full object-cover"
+            className="w-full object-cover"
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
             <Play className="h-12 w-12 text-white" />
